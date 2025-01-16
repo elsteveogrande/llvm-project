@@ -309,6 +309,15 @@ add_custom_target(cxx DEPENDS ${LIBCXX_BUILD_TARGETS})
 # Build the experimental static library
 set(LIBCXX_EXPERIMENTAL_SOURCES
   experimental/keep.cpp
+  experimental/stacktrace/libobjreader/ObjectReader.cpp
+  experimental/stacktrace/libobjreader/debug/DebugInfo.cpp
+  experimental/stacktrace/libobjreader/debug/DWARFDebugInfo.cpp
+  experimental/stacktrace/libobjreader/image/OSXImages.cpp
+  experimental/stacktrace/libobjreader/objfile/ObjectFile.cpp
+  experimental/stacktrace/libobjreader/objfile/MachO64File.cpp
+  experimental/stacktrace/libobjreader/objfile/MachO64File.cpp
+  experimental/stacktrace/libobjreader/util/Memory.cpp
+  experimental/stacktrace/stacktrace.cpp
   )
 
 if (LIBCXX_PSTL_BACKEND STREQUAL "libdispatch")

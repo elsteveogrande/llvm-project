@@ -1,0 +1,567 @@
+// -*- C++ -*-
+//===----------------------------------------------------------------------===//
+//
+// Part of the LLVM Project, under the Apache License v2.0 with LLVM Exceptions.
+// See https://llvm.org/LICENSE.txt for license information.
+// SPDX-License-Identifier: Apache-2.0 WITH LLVM-exception
+//
+//===----------------------------------------------------------------------===//
+
+#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE
+#define _LIBCPP_EXPERIMENTAL_STACKTRACE
+
+/*
+  Header <stacktrace> synopsis
+  (19.6.2)
+
+#include <compare>  // see [compare.syn]
+
+namespace std {
+  // [stacktrace.entry], class stacktrace_entry
+  class stacktrace_entry;
+
+  // [stacktrace.basic], class template basic_stacktrace
+  template<class Allocator>
+    class basic_stacktrace;
+
+  // basic_stacktrace typedef-names
+  using stacktrace = basic_stacktrace<allocator<stacktrace_entry>>;
+
+  // [stacktrace.basic.nonmem], non-member functions
+  template<class Allocator>
+    void swap(basic_stacktrace<Allocator>& a, basic_stacktrace<Allocator>& b)
+      noexcept(noexcept(a.swap(b)));
+
+  string to_string(const stacktrace_entry& f);
+
+  template<class Allocator>
+    string to_string(const basic_stacktrace<Allocator>& st);
+
+  ostream& operator<<(ostream& os, const stacktrace_entry& f);
+  template<class Allocator>
+    ostream& operator<<(ostream& os, const basic_stacktrace<Allocator>& st);
+
+  // [stacktrace.format], formatting support
+  template<> struct formatter<stacktrace_entry>;
+  template<class Allocator> struct formatter<basic_stacktrace<Allocator>>;
+
+  namespace pmr {
+    using stacktrace = basic_stacktrace<polymorphic_allocator<stacktrace_entry>>;
+  }
+
+  // [stacktrace.basic.hash], hash support
+  template<class T> struct hash;
+  template<> struct hash<stacktrace_entry>;
+  template<class Allocator> struct hash<basic_stacktrace<Allocator>>;
+}
+
+// [stacktrace.entry]
+
+namespace std {
+  class stacktrace_entry {
+  public:
+    using native_handle_type = implementation-defined;
+
+    // [stacktrace.entry.cons], constructors
+    constexpr stacktrace_entry() noexcept;
+    constexpr stacktrace_entry(const stacktrace_entry& other) noexcept;
+    constexpr stacktrace_entry& operator=(const stacktrace_entry& other) noexcept;
+
+    ~stacktrace_entry();
+
+    // [stacktrace.entry.obs], observers
+    constexpr native_handle_type native_handle() const noexcept;
+    constexpr explicit operator bool() const noexcept;
+
+    // [stacktrace.entry.query], query
+    string description() const;
+    string source_file() const;
+    uint_least32_t source_line() const;
+
+    // [stacktrace.entry.cmp], comparison
+    friend constexpr bool operator==(const stacktrace_entry& x,
+                                     const stacktrace_entry& y) noexcept;
+    friend constexpr strong_ordering operator<=>(const stacktrace_entry& x,
+                                                 const stacktrace_entry& y) noexcept;
+  };
+}
+
+// [stacktrace.basic]
+
+namespace std {
+  template<class Allocator>
+  class basic_stacktrace {
+  public:
+    using value_type = stacktrace_entry;
+    using const_reference = const value_type&;
+    using reference = value_type&;
+    using const_iterator = implementation-defined;  // see [stacktrace.basic.obs]
+    using iterator = const_iterator;
+    using reverse_iterator = std::reverse_iterator<iterator>;
+    using const_reverse_iterator = std::reverse_iterator<const_iterator>;
+    using difference_type = implementation-defined;
+    using size_type = implementation-defined;
+    using allocator_type = Allocator;
+
+    // [stacktrace.basic.cons], creation and assignment
+    static basic_stacktrace current(const allocator_type& alloc = allocator_type()) noexcept;
+    static basic_stacktrace current(size_type skip,
+                                    const allocator_type& alloc = allocator_type()) noexcept;
+    static basic_stacktrace current(size_type skip, size_type max_depth,
+                                    const allocator_type& alloc = allocator_type()) noexcept;
+
+    basic_stacktrace() noexcept(is_nothrow_default_constructible_v<allocator_type>);
+    explicit basic_stacktrace(const allocator_type& alloc) noexcept;
+
+    basic_stacktrace(const basic_stacktrace& other);
+    basic_stacktrace(basic_stacktrace&& other) noexcept;
+    basic_stacktrace(const basic_stacktrace& other, const allocator_type& alloc);
+    basic_stacktrace(basic_stacktrace&& other, const allocator_type& alloc);
+    basic_stacktrace& operator=(const basic_stacktrace& other);
+    basic_stacktrace& operator=(basic_stacktrace&& other)
+      noexcept(allocator_traits<Allocator>::propagate_on_container_move_assignment::value ||
+        allocator_traits<Allocator>::is_always_equal::value);
+
+    ~basic_stacktrace();
+
+    // [stacktrace.basic.obs], observers
+    allocator_type get_allocator() const noexcept;
+
+    const_iterator begin() const noexcept;
+    const_iterator end() const noexcept;
+    const_reverse_iterator rbegin() const noexcept;
+    const_reverse_iterator rend() const noexcept;
+
+    const_iterator cbegin() const noexcept;
+    const_iterator cend() const noexcept;
+    const_reverse_iterator crbegin() const noexcept;
+    const_reverse_iterator crend() const noexcept;
+
+    bool empty() const noexcept;
+    size_type size() const noexcept;
+    size_type max_size() const noexcept;
+
+    const_reference operator[](size_type) const;
+    const_reference at(size_type) const;
+
+    // [stacktrace.basic.cmp], comparisons
+    template<class Allocator2>
+    friend bool operator==(const basic_stacktrace& x,
+                           const basic_stacktrace<Allocator2>& y) noexcept;
+    template<class Allocator2>
+    friend strong_ordering operator<=>(const basic_stacktrace& x,
+                                       const basic_stacktrace<Allocator2>& y) noexcept;
+
+    // [stacktrace.basic.mod], modifiers
+    void swap(basic_stacktrace& other)
+      noexcept(allocator_traits<Allocator>::propagate_on_container_swap::value ||
+        allocator_traits<Allocator>::is_always_equal::value);
+
+  private:
+    vector<value_type, allocator_type> frames_;         // exposition only
+  };
+}
+
+*/
+
+#if __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+#  include <__cxx03/stacktrace>
+#else
+#  include <__config>
+
+#  if _LIBCPP_STD_VER >= 23
+
+#    include <__cstddef/byte.h>
+#    include <__cstddef/ptrdiff_t.h>
+#    include <__cstddef/size_t.h>
+#    include <__format/formatter.h>
+#    include <__functional/function.h>
+#    include <__functional/hash.h>
+#    include <__fwd/format.h>
+#    include <__fwd/ostream.h>
+#    include <__fwd/sstream.h>
+#    include <__fwd/vector.h>
+#    include <__iterator/iterator.h>
+#    include <__iterator/iterator_traits.h>
+#    include <__iterator/reverse_access.h>
+#    include <__iterator/reverse_iterator.h>
+#    include <__memory/allocator.h>
+#    include <__memory/allocator_traits.h>
+#    include <__utility/move.h>
+#    include <__vector/swap.h>
+#    include <__vector/vector.h>
+#    include <cstdint>
+#    include <string>
+#    include <version>
+
+// [stacktrace.syn]
+#    include <compare>
+
+#    if !defined(_LIBCPP_HAS_NO_PRAGMA_SYSTEM_HEADER)
+#      pragma GCC system_header
+#    endif
+
+_LIBCPP_PUSH_MACROS
+#    include <__undef_macros>
+
+_LIBCPP_BEGIN_NAMESPACE_STD
+
+template <class _Allocator>
+class _LIBCPP_EXPORTED_FROM_ABI _LIBCPP_TEMPLATE_VIS basic_stacktrace;
+
+class _LIBCPP_EXPORTED_FROM_ABI stacktrace_entry;
+
+inline namespace __stacktrace {
+
+struct __stacktrace_access {
+  stacktrace_entry& __entry;
+  uintptr_t& addr();
+  string& symbol();
+  string& file();
+  uint32_t& line();
+};
+
+struct __stacktrace_to_string {
+  void operator()(stringstream& __ss, stacktrace_entry const& __entry);
+  void operator()(stringstream& __ss, stacktrace_entry const* __entries, size_t __count);
+
+  string operator()(stacktrace_entry const& __entry);
+  string operator()(stacktrace_entry const* __entries, size_t __count);
+
+  template <class _Allocator>
+  string operator()(basic_stacktrace<_Allocator> const& __st) {
+    return (*this)(__st.__entries_.data(), __st.__entries_.size());
+  }
+};
+
+/** Build stacktrace_entry vector and populate only instruction addresses. */
+_LIBCPP_NO_TAIL_CALLS _LIBCPP_TEMPLATE_VIS _LIBCPP_NOINLINE void
+__build_entries(std::function<void(stacktrace_entry&&)> __append, size_t __skip, size_t __max_depth);
+
+/** Using entries from `build_entries` (and their addresses), resolve symbol names and source locations. */
+void __populate_entries(stacktrace_entry* __entries,
+                        size_t __size,
+                        std::function<std::byte*(size_t)> __alloc_func,
+                        std::function<void(std::byte*, size_t)> __dealloc_func);
+
+} // namespace __stacktrace
+
+class stacktrace_entry {
+public:
+  // (19.6.3.1) Overview [stacktrace.entry.overview]
+  using native_handle_type = uintptr_t;
+
+  // (19.6.3.2) [stacktrace.entry.cons], constructors
+  ~stacktrace_entry() noexcept                                            = default;
+  constexpr stacktrace_entry() noexcept                                   = default;
+  constexpr stacktrace_entry(const stacktrace_entry&) noexcept            = default;
+  constexpr stacktrace_entry& operator=(const stacktrace_entry&) noexcept = default;
+
+  // (19.6.3.3) [stacktrace.entry.obs], observers
+  [[nodiscard]] constexpr native_handle_type native_handle() const noexcept { return __addr_; }
+  [[nodiscard]] constexpr explicit operator bool() const noexcept { return __addr_ != 0; }
+
+  // (19.6.3.4) [stacktrace.entry.query], query
+  [[nodiscard]] string description() const { return __symbol_; }
+  [[nodiscard]] string source_file() const { return __file_; }
+  [[nodiscard]] uint_least32_t source_line() const { return __line_; }
+
+  // (19.6.3.5) [stacktrace.entry.cmp], comparison
+  [[nodiscard]] friend constexpr bool operator==(const stacktrace_entry& __x, const stacktrace_entry& __y) noexcept {
+    return __x.__addr_ == __y.__addr_;
+  }
+  [[nodiscard]] friend constexpr strong_ordering
+  operator<=>(const stacktrace_entry& __x, const stacktrace_entry& __y) noexcept {
+    return __x.__addr_ <=> __y.__addr_;
+  }
+
+private:
+  friend struct std::__stacktrace_access;
+  friend struct std::__stacktrace_to_string;
+
+  native_handle_type __addr_{0};
+  string __symbol_{};
+  string __file_{};
+  uint32_t __line_{0};
+};
+
+// (19.6.4)
+// Class template basic_stacktrace [stacktrace.basic]
+
+template <class _Allocator>
+class _LIBCPP_EXPORTED_FROM_ABI _LIBCPP_TEMPLATE_VIS basic_stacktrace {
+  friend struct _LIBCPP_TEMPLATE_VIS hash<basic_stacktrace<_Allocator>>;
+  friend struct __stacktrace::__stacktrace_to_string;
+
+  using _ATraits                               = allocator_traits<_Allocator>;
+  constexpr static bool __kPropOnCopy          = _ATraits::propagate_on_container_copy_assignment::value;
+  constexpr static bool __kPropOnMove          = _ATraits::propagate_on_container_move_assignment::value;
+  constexpr static bool __kPropOnSwap          = _ATraits::propagate_on_container_swap::value;
+  constexpr static bool __kAlwaysEqual         = _ATraits::is_always_equal::value;
+  constexpr static bool __kNoThrowDflConstruct = is_nothrow_default_constructible_v<_Allocator>;
+  constexpr static bool __kNoThrowAlloc =
+      noexcept(noexcept(_Allocator().allocate(1)) && noexcept(_Allocator().allocate_at_least(1)));
+
+  using __entry_vec = vector<stacktrace_entry, _Allocator>;
+
+  [[no_unique_address]] _Allocator __alloc_;
+  __entry_vec __entries_;
+
+  explicit basic_stacktrace(_Allocator const& __alloc, __entry_vec&& __entries)
+      : __alloc_(__alloc), __entries_(__entries) {}
+
+public:
+  // (19.6.4.1)
+  // Overview [stacktrace.basic.overview]
+
+  using value_type      = stacktrace_entry;
+  using const_reference = const value_type&;
+  using reference       = value_type&;
+  using difference_type = ptrdiff_t;
+  using size_type       = size_t;
+  using allocator_type  = _Allocator;
+  using const_iterator  = decltype(__entries_)::const_iterator;
+  using iterator        = const_iterator;
+
+  template <class _Tp>
+  using __std_reverse_iterator = reverse_iterator<_Tp>;
+
+  using reverse_iterator       = __std_reverse_iterator<basic_stacktrace::iterator>;
+  using const_reverse_iterator = __std_reverse_iterator<basic_stacktrace::const_iterator>;
+
+  // (19.6.4.2)
+  // Creation and assignment [stacktrace.basic.cons]
+
+  // clang-format off
+
+  constexpr static size_t __kDefaultReserve = 16;
+
+  /*
+   * Purposeful repetition of the following 3 constructors
+   * to avoid adding depth to the stack while taking the trace
+   */
+
+  _LIBCPP_NO_TAIL_CALLS _LIBCPP_NOINLINE
+  static basic_stacktrace current(const allocator_type& __alloc = allocator_type())
+                                      noexcept(__kNoThrowAlloc) {
+    return current(1, ~0, __alloc);
+  }
+
+  _LIBCPP_NO_TAIL_CALLS _LIBCPP_NOINLINE
+  static basic_stacktrace current(size_type __skip,
+                                  const allocator_type& __alloc = allocator_type())
+                                      noexcept(__kNoThrowAlloc) {
+    return current(__skip + 1, ~0, __alloc);
+  }
+
+  _LIBCPP_NO_TAIL_CALLS _LIBCPP_NOINLINE
+  static basic_stacktrace current(size_type __skip,
+                                  size_type __max_depth,
+                                  const allocator_type& __alloc = allocator_type())
+                                      noexcept(__kNoThrowAlloc) {
+    basic_stacktrace __ret {__alloc};
+    if (!__max_depth) [[unlikely]] { return __ret; }
+
+    auto& __entries = __ret.__entries_;
+    auto __append = [&__entries] (stacktrace_entry&& __e) { __entries.emplace_back(std::move(__e)); };
+    __entries.reserve(std::min(__kDefaultReserve, __max_depth));
+    __stacktrace::__build_entries(__append, __skip + 1, __max_depth);
+
+    using _Traits        = std::allocator_traits<_Allocator>;
+    using _ByteAlloc     = typename _Traits::template rebind_alloc<std::byte>;
+    auto __rb_byte_alloc = _ByteAlloc(__alloc);
+    __populate_entries(
+        __entries.data(),
+        __entries.size(),
+        [__rb_byte_alloc](size_t __size) mutable { return __rb_byte_alloc.allocate(__size); },
+        [__rb_byte_alloc](std::byte* __ptr, size_t __n) mutable { __rb_byte_alloc.deallocate(__ptr, __n); });
+
+    return __ret;
+  }
+
+  constexpr ~basic_stacktrace() = default;
+
+  explicit basic_stacktrace(const allocator_type& __alloc) noexcept
+    : __alloc_(__alloc)
+    , __entries_(0, __alloc) {}
+
+  basic_stacktrace() noexcept(__kNoThrowDflConstruct) = default;
+
+  basic_stacktrace(basic_stacktrace const& __other)
+      : __alloc_(std::allocator_traits<allocator_type>
+                    ::select_on_container_copy_construction(__other.__alloc_))
+      , __entries_(__other.__entries_, __alloc_) {}
+
+  basic_stacktrace(basic_stacktrace&& __other) noexcept
+      : __alloc_(std::move(__other.__alloc_))
+      , __entries_(std::move(__other.__entries_)) {}
+
+  basic_stacktrace(basic_stacktrace const& __other, allocator_type const& __alloc)
+      : __alloc_(__alloc)
+      , __entries_(__other.__entries_, __alloc_) {}
+
+  basic_stacktrace(basic_stacktrace&& __other, allocator_type const& __alloc)
+      : __alloc_(__alloc)
+      , __entries_(__alloc_) {
+    auto __allocs_eq = __kAlwaysEqual || __alloc_ == __other.__alloc_;
+    if (__allocs_eq) {
+      __entries_ = std::move(__other.__entries_);
+    } else {
+      // "moving" from a container with a different allocator;
+      // we're forced to copy items instead
+      for (auto const& __entry : __other.__entries_) { __entries_.push_back(__entry); }
+    }
+  }
+
+  basic_stacktrace& operator=(const basic_stacktrace& __other) {
+    if (this == &__other) { return *this; }
+    if (__kPropOnCopy) { __alloc_ = __other.__alloc_; }
+    __entries_ = {__other.__entries_, __alloc_};
+    return *this;
+  }
+
+  basic_stacktrace& operator=(basic_stacktrace&& __other)
+      noexcept(__kPropOnMove || __kAlwaysEqual) {
+    if (this == &__other) { return *this; }
+    if (__kPropOnMove) {
+      __alloc_ = __other.__alloc_;
+      __entries_ = std::move(__other.__entries_);
+    } else {
+      auto __allocs_eq = __kAlwaysEqual || __alloc_ == __other.__alloc_;
+      if (__allocs_eq) {
+        __entries_ = std::move(__other.__entries_);
+      } else {
+        // "moving" from a container with a different allocator;
+        // we're forced to copy items instead
+        for (auto const& __entry : __other.__entries_) { __entries_.push_back(__entry); }
+      }
+    }
+    return *this;
+  }
+
+  // clang-format on
+
+  // (19.6.4.3)
+  // [stacktrace.basic.obs], observers
+
+  [[nodiscard]] allocator_type get_allocator() const noexcept { return __alloc_; }
+
+  [[nodiscard]] const_iterator begin() const noexcept { return __entries_.begin(); }
+  [[nodiscard]] const_iterator end() const noexcept { return __entries_.end(); }
+  [[nodiscard]] const_reverse_iterator rbegin() const noexcept { return __entries_.rbegin(); }
+  [[nodiscard]] const_reverse_iterator rend() const noexcept { return __entries_.rend(); }
+
+  [[nodiscard]] const_iterator cbegin() const noexcept { return __entries_.cbegin(); }
+  [[nodiscard]] const_iterator cend() const noexcept { return __entries_.cend(); }
+  [[nodiscard]] const_reverse_iterator crbegin() const noexcept { return __entries_.crbegin(); }
+  [[nodiscard]] const_reverse_iterator crend() const noexcept { return __entries_.crend(); }
+
+  [[nodiscard]] bool empty() const noexcept { return __entries_.empty(); }
+  [[nodiscard]] size_type size() const noexcept { return __entries_.size(); }
+  [[nodiscard]] size_type max_size() const noexcept { return __entries_.max_size(); }
+
+  [[nodiscard]] const_reference operator[](size_type __i) const { return __entries_[__i]; }
+  [[nodiscard]] const_reference at(size_type __i) const { return __entries_.at(__i); }
+
+  // (19.6.4.4)
+  // [stacktrace.basic.cmp], comparisons
+
+  template <class _Allocator2>
+  friend bool operator==(const basic_stacktrace& __x, const basic_stacktrace<_Allocator2>& __y) noexcept {
+    return (__x.size() == __y.size()) && equal(__x.begin(), __x.end(), __y.begin(), __y.end());
+  }
+
+  template <class _Allocator2>
+  friend strong_ordering operator<=>(const basic_stacktrace& __x, const basic_stacktrace<_Allocator2>& __y) noexcept {
+    if (__x.size() != __y.size()) {
+      return __x.size() <=> __y.size();
+    }
+    return lexicographical_compare_three_way(__x.begin(), __x.end(), __y.begin(), __y.end());
+  }
+
+  // (19.6.4.5)
+  // [stacktrace.basic.mod], modifiers
+
+  void swap(basic_stacktrace<_Allocator>& __other) noexcept {
+    std::swap(__entries_, __other.__entries_);
+    if (__kPropOnSwap) {
+      std::swap(__alloc_, __other.__alloc_);
+    }
+  }
+};
+
+using stacktrace = basic_stacktrace<allocator<stacktrace_entry>>;
+
+namespace pmr {
+using stacktrace = basic_stacktrace<polymorphic_allocator<stacktrace_entry>>;
+} // namespace pmr
+
+// (19.6.4.6)
+// Non-member functions [stacktrace.basic.nonmem]
+
+template <class _Allocator>
+_LIBCPP_EXPORTED_FROM_ABI inline void
+swap(basic_stacktrace<_Allocator>& __a, basic_stacktrace<_Allocator>& __b) noexcept(noexcept(__a.swap(__b))) {
+  __a.swap(__b);
+}
+
+_LIBCPP_EXPORTED_FROM_ABI inline string to_string(const stacktrace_entry& __entry) {
+  return __stacktrace_to_string()(__entry);
+}
+
+template <class _Allocator>
+_LIBCPP_EXPORTED_FROM_ABI inline string to_string(const basic_stacktrace<_Allocator>& __stacktrace) {
+  return __stacktrace_to_string()(__stacktrace);
+}
+
+_LIBCPP_EXPORTED_FROM_ABI inline ostream& operator<<(ostream& __os, const stacktrace_entry& __entry) {
+  return __os << to_string(__entry);
+}
+
+template <class _Allocator>
+_LIBCPP_EXPORTED_FROM_ABI inline ostream& operator<<(ostream& __os, const basic_stacktrace<_Allocator>& __stacktrace) {
+  return __os << to_string(__stacktrace);
+}
+
+// (19.6.5)
+// Formatting support [stacktrace.format]
+
+// TODO
+template <>
+struct _LIBCPP_EXPORTED_FROM_ABI formatter<stacktrace_entry>;
+
+// TODO
+template <class _Allocator>
+struct _LIBCPP_EXPORTED_FROM_ABI formatter<basic_stacktrace<_Allocator>>;
+
+// (19.6.6)
+// Hash support [stacktrace.basic.hash]
+
+template <>
+struct _LIBCPP_EXPORTED_FROM_ABI hash<stacktrace_entry> {
+  [[nodiscard]] size_t operator()(stacktrace_entry const& __entry) const noexcept {
+    auto __addr = __entry.native_handle();
+    return hash<decltype(__addr)>()(__addr);
+  }
+};
+
+template <class _Allocator>
+struct _LIBCPP_EXPORTED_FROM_ABI hash<basic_stacktrace<_Allocator>> {
+  [[nodiscard]] size_t operator()(basic_stacktrace<_Allocator> const& __trace) const noexcept {
+    size_t __ret = 1;
+    hash<stacktrace_entry> __ehash;
+    for (auto const& __entry : __trace.__entries_) {
+      __ret = __hash_combine(__ret, __ehash(__entry));
+    }
+    return __ret;
+  }
+};
+
+_LIBCPP_END_NAMESPACE_STD
+
+_LIBCPP_POP_MACROS
+
+#  endif // _LIBCPP_STD_VER >= 23
+#endif   // __cplusplus < 201103L && defined(_LIBCPP_USE_FROZEN_CXX03_HEADERS)
+
+#endif // _LIBCPP_EXPERIMENTAL_STACKTRACE

@@ -979,6 +979,33 @@ typedef __char32_t char32_t;
 #    define _LIBCPP_NOINLINE
 #  endif
 
+// Some functions, e.g. std::stacktrace::current, need to avoid being
+// tail-called by (and tail-calling other) functions, for proper enumeration of
+// call-stack frames.
+// clang-format off
+
+// Disables tail-call optimization for "outbound" calls
+// performed in the function annotated with this attribute.
+#  if __has_cpp_attribute(clang::disable_tail_calls)
+#    define _LIBCPP_NO_TAIL_CALLS_OUT [[clang::disable_tail_calls]]
+#  elif __has_cpp_attribute(gnu::optimize)
+#    define _LIBCPP_NO_TAIL_CALLS_OUT [[gnu::optimize("no-optimize-sibling-calls")]]
+#  else
+#    define _LIBCPP_NO_TAIL_CALLS_OUT
+#  endif
+
+// Disables tail-call optimization for "inbound" calls -- that is,
+// calls from some other function calling the one having this attribute.
+#  if __has_cpp_attribute(clang::not_tail_called)
+#    define _LIBCPP_NO_TAIL_CALLS_IN [[clang::not_tail_called]]
+#  else
+#    define _LIBCPP_NO_TAIL_CALLS_IN
+#  endif
+
+// Disable TCO for calls into, and out from, the annotated function.
+#  define _LIBCPP_NO_TAIL_CALLS _LIBCPP_NO_TAIL_CALLS_IN _LIBCPP_NO_TAIL_CALLS_OUT
+// clang-format on
+
 // We often repeat things just for handling wide characters in the library.
 // When wide characters are disabled, it can be useful to have a quick way of
 // disabling it without having to resort to #if-#endif, which has a larger

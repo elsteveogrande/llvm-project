@@ -1,0 +1,8 @@
+.clang-format
+.clang-tidy
+compiler_flags.txt
+stuff/
+test/
+!test/test.sh
+!test/test.cc
+!test/examples/*.zst
