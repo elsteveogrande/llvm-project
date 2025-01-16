@@ -309,6 +309,7 @@ add_custom_target(cxx DEPENDS ${LIBCXX_BUILD_TARGETS})
 # Build the experimental static library
 set(LIBCXX_EXPERIMENTAL_SOURCES
   experimental/keep.cpp
+  experimental/stacktrace/stacktrace.cpp
   )
 
 if (LIBCXX_PSTL_BACKEND STREQUAL "libdispatch")
