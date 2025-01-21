@@ -227,7 +227,7 @@ public:
     return x.__addr_ <=> y.__addr_;
   }
 
-  _LIBCPP_HIDE_FROM_ABI static void __current_entries(
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE static void __current_entries(
       function<void(size_t)> __resize_func,
       function<void(size_t, stacktrace_entry&&)> __assign_func,
       size_t __skip,

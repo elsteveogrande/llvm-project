@@ -26,48 +26,20 @@ _LIBCPP_HIDE_FROM_ABI void stacktrace_entry::__current_entries(
     function<void(size_t)> __resize_func,
     function<void(size_t, stacktrace_entry&&)> __assign_func,
     size_t __skip,
-    size_t __max_depth) {
-  // TODO!  This is a temporary impl, we'll use an actual library
-  // like execinfo, dbghlp.h, ...
-
-  void** fp = (void**)__builtin_frame_address(0);
-  while (fp && __skip--) {
-    fp = (void**)fp[0];
-  }
-  if (!fp) {
-    return;
-  }
-
+    size_t __max_depth) _LIBCPP_NOINLINE {
+  ++__skip; // increment once more, to omit this `__current_entries` frame
+  auto current_proc = std::__stacktrace_support::process::current_process();
   if (!__max_depth) {
-    auto tmp_fp = fp;
-    while (tmp_fp) {
-      tmp_fp = (void**)tmp_fp[0];
-      ++__max_depth;
-    }
+    __max_depth = current_proc->call_stack_height(__skip);
   }
-
   __resize_func(__max_depth);
 
-  size_t index = 0;
-  while (fp && __max_depth--) {
-    // fp still valid (didn't run past the bottom of stack);
-    // max_depth not yet exceeded;
-    // and index is the number of frames collected so far.
-
-    // Address of the instruction that called us.
-    // We get that by obtaining the return address and backing up one byte
-    // so we're on the last byte of the previous insn.
-    auto* ptr = fp[1];
-    if (!ptr) {
-      break;
-    }
-    auto insn = ((uintptr_t)ptr) - 1;
-    std::stacktrace_entry entry{insn, {}};
+  size_t index  = 0;
+  auto callback = [__assign_func, &index](uintptr_t insn_addr) {
+    std::stacktrace_entry entry{insn_addr, {}};
     __assign_func(index++, std::move(entry));
-    fp = (void**)fp[0];
-  }
-
-  // Shrink vector if stacktrace is smaller than the requested max.
+  };
+  current_proc->call_stack_addrs(callback, __skip, __max_depth);
   __resize_func(index);
 }
 

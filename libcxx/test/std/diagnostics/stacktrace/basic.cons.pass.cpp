@@ -11,6 +11,7 @@
 #include <experimental/stacktrace>
 
 #include <cassert>
+#include <iostream>
 
 /*
   (19.6.4.2)
@@ -49,9 +50,11 @@ struct test_alloc {
     using other = test_alloc<U>;
   };
 
-  size_t* alloc_counter_;
-  size_t* dealloc_counter_;
+  size_t* alloc_counter_{nullptr};
+  size_t* dealloc_counter_{nullptr};
   std::allocator<T> wrapped_{};
+
+  test_alloc() = default;
 
   explicit test_alloc(size_t* alloc_counter, size_t* dealloc_counter)
       : alloc_counter_(alloc_counter), dealloc_counter_(dealloc_counter) {}
@@ -60,19 +63,25 @@ struct test_alloc {
   bool operator==(test_alloc const&) const { return true; }
 
   T* allocate(size_t n) {
-    *alloc_counter_ += n;
+    if (alloc_counter_) {
+      *alloc_counter_ += n;
+    }
     return wrapped_.allocate(n);
-  }
-
-  void deallocate(T* ptr, size_t n) {
-    *dealloc_counter_ += n;
-    return wrapped_.deallocate(ptr, n);
   }
 
   auto allocate_at_least(size_t n) {
     auto ret = wrapped_.allocate_at_least(n);
-    *alloc_counter_ += ret.count;
+    if (alloc_counter_) {
+      *alloc_counter_ += ret.count;
+    }
     return ret;
+  }
+
+  void deallocate(T* ptr, size_t n) {
+    if (dealloc_counter_) {
+      *dealloc_counter_ += n;
+    }
+    return wrapped_.deallocate(ptr, n);
   }
 };
 
@@ -174,15 +183,18 @@ void test_current_with_skip() {
   basic_stacktrace object if the initialization of frames_ failed.
 */
 void test_current_with_skip_depth() {
-  auto st  = std::stacktrace::current();
-  auto top = *st.begin();
+  // current stack is: [this function, main, (possibly something else, e.g. `_start` from libc)]
+  // so it's probably 3 functions deep -- but certainly at least 2 deep.
+  auto st = std::stacktrace::current();
   assert(st.size() >= 2);
-  st = std::stacktrace::current(0, 2);
-  assert(st.size() == 2);
-  assert(*st.begin() == top);
-  st = std::stacktrace::current(0, 1);
+  auto it     = st.begin();
+  auto entry1 = *(it++); // represents this function
+  auto entry2 = *(it++); // represents our caller, `main`
+
+  // get current trace again, but skip the 1st
+  st = std::stacktrace::current(1, 1);
   assert(st.size() == 1);
-  assert(*st.begin() == top);
+  assert(*st.begin() == entry2);
 }
 
 /*

@@ -218,16 +218,17 @@ class _LIBCPP_EXPORTED_FROM_ABI basic_stacktrace {
   constexpr static bool __kPropOnSwap          = _ATraits::propagate_on_container_swap::value;
   constexpr static bool __kAlwaysEqual         = _ATraits::is_always_equal::value;
   constexpr static bool __kNoThrowDflConstruct = is_nothrow_default_constructible_v<_Allocator>;
+  constexpr static bool __kNoThrowAlloc =
+      noexcept(noexcept(_Allocator().allocate(1)) && noexcept(_Allocator().allocate_at_least(1)));
 
   [[no_unique_address]] _Allocator __alloc_;
   vector<stacktrace_entry, _Allocator> __entries_;
 
-  _LIBCPP_HIDE_FROM_ABI static void __populate(auto& __entry_vec, size_t __skip, size_t __max_depth) {
-    auto __total_skip = 2 + __skip; // additionally skip `__populate` as well as `__current_entries`
+  _LIBCPP_HIDE_FROM_ABI static void __populate(auto& __entry_vec, size_t __skip, size_t __max_depth) _LIBCPP_NOINLINE {
     stacktrace_entry::__current_entries(
         [&__entry_vec](size_t __size) { __entry_vec.resize(__size); },
         [&__entry_vec](size_t __index, stacktrace_entry&& __entry) { __entry_vec[__index] = std::move(__entry); },
-        __total_skip,
+        __skip + 1, // skip this `__populate` call, plus caller's requested skip count
         __max_depth);
   }
 
@@ -251,22 +252,24 @@ public:
 
   // (19.6.4.2)
 
-  __attribute__((__noinline__, __disable_tail_calls__)) static basic_stacktrace
-  current(const allocator_type& __alloc = allocator_type()) noexcept {
+  _LIBCPP_NOINLINE static basic_stacktrace
+  current(const allocator_type& __alloc = allocator_type()) noexcept(__kNoThrowAlloc) {
     basic_stacktrace<_Allocator> __ret{__alloc};
     __populate(__ret.__entries_, 1, 0);
     return __ret;
   }
 
-  __attribute__((__noinline__, __disable_tail_calls__)) static basic_stacktrace
-  current(size_type __skip, const allocator_type& __alloc = allocator_type()) noexcept {
+  _LIBCPP_NOINLINE static basic_stacktrace
+  current(size_type __skip, const allocator_type& __alloc = allocator_type()) noexcept(__kNoThrowAlloc) {
     basic_stacktrace<_Allocator> __ret{__alloc};
     __populate(__ret.__entries_, 1 + __skip, 0);
     return __ret;
   }
 
-  __attribute__((__noinline__, __disable_tail_calls__)) static basic_stacktrace
-  current(size_type __skip, size_type __max_depth, const allocator_type& __alloc = allocator_type()) noexcept {
+  _LIBCPP_NOINLINE static basic_stacktrace
+  current(size_type __skip,
+          size_type __max_depth,
+          const allocator_type& __alloc = allocator_type()) noexcept(__kNoThrowAlloc) {
     basic_stacktrace<_Allocator> __ret{__alloc};
     if (__max_depth == 0) [[unlikely]] {
       return __ret;
