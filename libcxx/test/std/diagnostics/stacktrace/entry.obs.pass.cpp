@@ -39,7 +39,7 @@ int main(int, char**) {
   assert(!entryT6);
 
   // Now set addr to something nonzero (using non-public helper API)
-  std::__stacktrace_helper::__set_addr(entryT6, (uintptr_t)&main);
+  std::__stacktrace_test_helper::__set_addr(entryT6, (uintptr_t)&main);
   assert(entryT6.native_handle() == (uintptr_t)&main);
   assert(entryT6);
 

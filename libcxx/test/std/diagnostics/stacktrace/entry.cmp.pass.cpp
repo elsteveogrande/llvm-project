@@ -42,7 +42,7 @@ int main(int, char**) {
 
   // A non-empty entry.
   std::stacktrace_entry c;
-  std::__stacktrace_helper::__set_addr(c, (uintptr_t)&main);
+  std::__stacktrace_test_helper::__set_addr(c, (uintptr_t)&main);
   assert(c.native_handle() == (uintptr_t)&main); // (make sure the above is correct)
   assert(c);
 

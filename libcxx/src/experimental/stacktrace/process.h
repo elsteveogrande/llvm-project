@@ -6,4 +6,11 @@
 //
 //===----------------------------------------------------------------------===//
 
-namespace __stacktrace_support {}
+#include <__config>
+
+namespace std::__stacktrace_support {
+struct binary;
+struct module;
+struct trace;
+
+} // namespace std::__stacktrace_support

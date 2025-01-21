@@ -56,6 +56,9 @@ struct test_alloc {
   explicit test_alloc(size_t* alloc_counter, size_t* dealloc_counter)
       : alloc_counter_(alloc_counter), dealloc_counter_(dealloc_counter) {}
 
+  bool operator==(auto const& rhs) const { return &rhs == this; }
+  bool operator==(test_alloc const&) const { return true; }
+
   T* allocate(size_t n) {
     *alloc_counter_ += n;
     return wrapped_.allocate(n);
@@ -205,7 +208,8 @@ void test_construct_with_allocator() {
   std::basic_stacktrace<decltype(alloc)> st(alloc);
   assert(st.empty());
   assert(allocs == 0);
-  std::__stacktrace_helper::__append(st, {});
+
+  st = std::basic_stacktrace<test_alloc<std::stacktrace_entry>>::current(alloc);
   assert(!st.empty());
   assert(allocs > 0);
 }

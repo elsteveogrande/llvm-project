@@ -974,6 +974,7 @@ set(files
   experimental/__simd/traits.h
   experimental/__simd/utility.h
   experimental/__simd/vec_ext.h
+  experimental/__stacktrace/entry.h
   experimental/iterator
   experimental/memory
   experimental/propagate_const

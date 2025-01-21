@@ -310,6 +310,10 @@ add_custom_target(cxx DEPENDS ${LIBCXX_BUILD_TARGETS})
 set(LIBCXX_EXPERIMENTAL_SOURCES
   experimental/keep.cpp
   experimental/stacktrace.cpp
+  experimental/stacktrace/binary.cpp
+  experimental/stacktrace/module.cpp
+  experimental/stacktrace/process.cpp
+  experimental/stacktrace/trace.cpp
   )
 
 if (LIBCXX_PSTL_BACKEND STREQUAL "libdispatch")

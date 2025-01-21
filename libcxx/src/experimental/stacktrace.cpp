@@ -7,45 +7,47 @@
 //===----------------------------------------------------------------------===//
 
 #include <__config>
+#include <cstddef>
+#include <functional>
 
+#include <experimental/__stacktrace/entry.h>
 #include <experimental/stacktrace>
 
-namespace {}
+#include "stacktrace/binary.h"
+#include "stacktrace/module.h"
+#include "stacktrace/process.h"
+#include "stacktrace/trace.h"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-// TODO!  This is using a very simple and unportable method which walks the stack
-// back from the current frame address.  This will eventually use a proper library
-// instead: unwind, execinfo(?), and probably some parts stolen from llvm::Symbolizer.
+stacktrace_entry::~stacktrace_entry() noexcept = default;
 
-_LIBCPP_EXPORTED_FROM_ABI // TODO Get this symbol to appear in libc++.a without this macro
-void
-__stacktrace_helper::__populate(std::function<void(size_t)> __resize_lam,
-                                std::function<void(size_t, uintptr_t)> __set_addr_lam,
-                                size_t __skip,
-                                size_t __max_depth) {
-  void** fp;
+_LIBCPP_HIDE_FROM_ABI void stacktrace_entry::__current_entries(
+    function<void(size_t)> __resize_func,
+    function<void(size_t, stacktrace_entry&&)> __assign_func,
+    size_t __skip,
+    size_t __max_depth) {
+  // TODO!  This is a temporary impl, we'll use an actual library
+  // like execinfo, dbghlp.h, ...
+
+  void** fp = (void**)__builtin_frame_address(0);
+  while (fp && __skip--) {
+    fp = (void**)fp[0];
+  }
+  if (!fp) {
+    return;
+  }
 
   if (!__max_depth) {
-    // zero depth means "no limit".  We'll find the actual depth and use that.
-    // Although this is doing a stack walk twice, it'll reduce vector allocations.
-    auto skip = __skip;
-    fp        = (void**)__builtin_frame_address(0);
-    while (fp && skip--) {
-      fp = (void**)fp[0];
-    }
-    while (fp) {
-      fp = (void**)fp[0];
+    auto tmp_fp = fp;
+    while (tmp_fp) {
+      tmp_fp = (void**)tmp_fp[0];
       ++__max_depth;
     }
   }
 
-  __resize_lam(__max_depth);
+  __resize_func(__max_depth);
 
-  fp = (void**)__builtin_frame_address(0);
-  while (fp && __skip--) {
-    fp = (void**)fp[0];
-  }
   size_t __index = 0;
   while (fp && __max_depth--) {
     // Address of the instruction that called us.
@@ -55,12 +57,13 @@ __stacktrace_helper::__populate(std::function<void(size_t)> __resize_lam,
     if (!ptr) {
       break;
     }
-    uintptr_t __insn = ((uintptr_t)ptr) - 1;
-    printf("@@@ %lu <- %lx\n", __index, __insn);
-    __set_addr_lam(__index, __insn);
-    ++__index;
+    auto insn = ((uintptr_t)ptr) - 1;
+    std::stacktrace_entry entry{insn, {}};
+    __assign_func(__index++, std::move(entry));
     fp = (void**)fp[0];
   }
 }
+
+namespace {}
 
 _LIBCPP_END_NAMESPACE_STD

@@ -9,8 +9,8 @@
 #include <__config>
 
 namespace std::__stacktrace_support {
+struct binary;
 struct module;
 struct process;
-struct trace;
 
 } // namespace std::__stacktrace_support

@@ -328,7 +328,7 @@ if (libcxx_enable_experimental) {
         "experimental/stacktrace/debuginfo.h",
         "experimental/stacktrace/module.h",
         "experimental/stacktrace/process.h",
-        "experimental/stacktrace.cpp",
+        "experimental/stacktrace/stacktrace.cpp",
         "experimental/time_zone.cpp",
         "experimental/tzdb.cpp",
         "experimental/tzdb_list.cpp",

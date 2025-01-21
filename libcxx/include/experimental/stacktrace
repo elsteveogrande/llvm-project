@@ -192,6 +192,8 @@ namespace std {
 #    include <string>
 #    include <version>
 
+#    include <experimental/__stacktrace/entry.h>
+
 // [stacktrace.syn]
 #    include <compare>
 
@@ -204,68 +206,10 @@ _LIBCPP_PUSH_MACROS
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
-// (19.6.3) Class stacktrace_entry [stacktrace.entry]
-
-class stacktrace_entry;
-
-struct _LIBCPP_HIDE_FROM_ABI __stacktrace_helper {
-  static void __set_addr(stacktrace_entry& __entry, uintptr_t __addr);
-  static void __append(auto& __trace, stacktrace_entry&& __entry);
-  static void __populate(std::function<void(size_t)> __resize_lam,
-                         std::function<void(size_t, uintptr_t)> __set_addr_lam,
-                         size_t __skip,
-                         size_t __max_depth);
-};
-
-class stacktrace_entry {
-public:
-  // (19.6.3.1) Overview [stacktrace.entry.overview]
-  using native_handle_type = uintptr_t;
-
-  // (19.6.3.2) [stacktrace.entry.cons], constructors
-  ~stacktrace_entry() noexcept                                            = default;
-  constexpr stacktrace_entry() noexcept                                   = default;
-  constexpr stacktrace_entry(const stacktrace_entry&) noexcept            = default;
-  constexpr stacktrace_entry& operator=(const stacktrace_entry&) noexcept = default;
-
-  // (19.6.3.3) [stacktrace.entry.obs], observers
-  [[nodiscard]] constexpr native_handle_type native_handle() const noexcept { return __addr_; }
-  [[nodiscard]] constexpr explicit operator bool() const noexcept { return __addr_ != 0; }
-
-  // (19.6.3.4) [stacktrace.entry.query], query
-  [[nodiscard]] string description() const { return __description_; }
-  [[nodiscard]] string source_file() const { return __source_file_; }
-  [[nodiscard]] uint_least32_t source_line() const { return __source_line_; }
-
-  // (19.6.3.5) [stacktrace.entry.cmp], comparison
-  [[nodiscard]] friend constexpr bool operator==(const stacktrace_entry& x, const stacktrace_entry& y) noexcept {
-    return x.__addr_ == y.__addr_;
-  }
-  [[nodiscard]] friend constexpr strong_ordering
-  operator<=>(const stacktrace_entry& x, const stacktrace_entry& y) noexcept {
-    return x.__addr_ <=> y.__addr_;
-  }
-
-private:
-  native_handle_type __addr_{0};
-  string __description_{};
-  string __source_file_{};
-  uint_least32_t __source_line_{};
-
-  friend struct __stacktrace_helper;
-  void __set_addr(uintptr_t __addr) { __addr_ = __addr; }
-  void __set_description(string __description) { __description_ = __description; }
-  void __set_source_file(string __source_file) { __source_file_ = __source_file; }
-  void __set_source_line(uintptr_t __source_line) { __source_line_ = __source_line; }
-};
-
-inline void __stacktrace_helper::__set_addr(stacktrace_entry& __entry, uintptr_t __addr) { __entry.__set_addr(__addr); }
-
 // (19.6.4) Class template basic_stacktrace [stacktrace.basic]
 
 template <class _Allocator>
 class _LIBCPP_EXPORTED_FROM_ABI basic_stacktrace {
-  friend struct __stacktrace_helper;
   friend struct hash<basic_stacktrace<_Allocator>>;
 
   using _ATraits                               = allocator_traits<_Allocator>;
@@ -278,13 +222,11 @@ class _LIBCPP_EXPORTED_FROM_ABI basic_stacktrace {
   [[no_unique_address]] _Allocator __alloc_;
   vector<stacktrace_entry, _Allocator> __entries_;
 
-  static void __populate(auto& __entry_vec, size_t __skip, size_t __max_depth) {
-    auto __total_skip = 2 + __skip; // additionally skip `__populate` as well as `__populate`
-    __stacktrace_helper::__populate(
+  _LIBCPP_HIDE_FROM_ABI static void __populate(auto& __entry_vec, size_t __skip, size_t __max_depth) {
+    auto __total_skip = 2 + __skip; // additionally skip `__populate` as well as `__current_entries`
+    stacktrace_entry::__current_entries(
         [&__entry_vec](size_t __size) { __entry_vec.resize(__size); },
-        [&__entry_vec](size_t __index, uintptr_t __addr) {
-          __stacktrace_helper::__set_addr(__entry_vec[__index], __addr);
-        },
+        [&__entry_vec](size_t __index, stacktrace_entry&& __entry) { __entry_vec[__index] = std::move(__entry); },
         __total_skip,
         __max_depth);
   }
@@ -335,7 +277,7 @@ public:
 
   constexpr ~basic_stacktrace() = default;
 
-  explicit basic_stacktrace(const allocator_type& __alloc) noexcept : __alloc_(__alloc), __entries_(__alloc) {}
+  explicit basic_stacktrace(const allocator_type& __alloc) noexcept : __alloc_(__alloc), __entries_(0, __alloc) {}
 
   basic_stacktrace() noexcept(__kNoThrowDflConstruct) = default;
 
@@ -439,10 +381,6 @@ public:
     }
   }
 };
-
-void __stacktrace_helper::__append(auto& __trace, stacktrace_entry&& __entry) {
-  __trace.__entries_.emplace_back(std::move(__entry));
-}
 
 using stacktrace = basic_stacktrace<allocator<stacktrace_entry>>;
 
