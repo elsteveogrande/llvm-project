@@ -22,7 +22,18 @@
   Effects: Exchanges the contents of *this and other.
 */
 int main(int, char**) {
-  // TODO: test swap
+  std::stacktrace empty;
+  auto current = std::stacktrace::current();
+
+  std::stacktrace a(empty);
+  std::stacktrace b(current);
+  assert(a == empty);
+  assert(b == current);
+
+  a.swap(b);
+  assert(a == current);
+  assert(b == empty);
+
   // TODO: test swap w/ `select_on_container_swap` case
 
   return 0;

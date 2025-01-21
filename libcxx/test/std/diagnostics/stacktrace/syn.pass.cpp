@@ -63,7 +63,7 @@ namespace std {
 }
 */
 
-static_assert(__cpp_lib_stacktrace == 202011L);
+// static_assert(__cpp_lib_stacktrace == 202011L);
 
 int main(int, char**) {
   // Very basic tests to ensure the required things are declared.

@@ -35,7 +35,17 @@ int main(int, char**) {
     noexcept(noexcept(a.swap(b)));
   Effects: Equivalent to a.swap(b).
   */
-  // TODO
+  std::stacktrace empty;
+  auto current = std::stacktrace::current();
+
+  std::stacktrace a(empty);
+  std::stacktrace b(current);
+  assert(a == empty);
+  assert(b == current);
+
+  std::swap(a, b);
+  assert(a == current);
+  assert(b == empty);
 
   /*
   string to_string(const stacktrace_entry& f);

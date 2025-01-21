@@ -433,9 +433,9 @@ public:
   // [stacktrace.basic.mod], modifiers
 
   void swap(basic_stacktrace<_Allocator>& __other) noexcept {
-    swap(__entries_(__other.__entries_));
+    std::swap(__entries_, __other.__entries_);
     if (__kPropOnSwap) {
-      swap(__alloc_, __other.__alloc_);
+      std::swap(__alloc_, __other.__alloc_);
     }
   }
 };
