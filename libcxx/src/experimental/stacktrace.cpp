@@ -48,8 +48,12 @@ _LIBCPP_HIDE_FROM_ABI void stacktrace_entry::__current_entries(
 
   __resize_func(__max_depth);
 
-  size_t __index = 0;
+  size_t index = 0;
   while (fp && __max_depth--) {
+    // fp still valid (didn't run past the bottom of stack);
+    // max_depth not yet exceeded;
+    // and index is the number of frames collected so far.
+
     // Address of the instruction that called us.
     // We get that by obtaining the return address and backing up one byte
     // so we're on the last byte of the previous insn.
@@ -59,9 +63,12 @@ _LIBCPP_HIDE_FROM_ABI void stacktrace_entry::__current_entries(
     }
     auto insn = ((uintptr_t)ptr) - 1;
     std::stacktrace_entry entry{insn, {}};
-    __assign_func(__index++, std::move(entry));
+    __assign_func(index++, std::move(entry));
     fp = (void**)fp[0];
   }
+
+  // Shrink vector if stacktrace is smaller than the requested max.
+  __resize_func(index);
 }
 
 namespace {}
