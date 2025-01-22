@@ -16,17 +16,17 @@
 #include "stacktrace/binary.h"
 #include "stacktrace/module.h"
 #include "stacktrace/process.h"
-#include "stacktrace/trace.h"
+#include "stacktrace/tracer.h"
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 stacktrace_entry::~stacktrace_entry() noexcept = default;
 
-_LIBCPP_HIDE_FROM_ABI void stacktrace_entry::__current_entries(
+_LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void stacktrace_entry::__current_entries(
     function<void(size_t)> __resize_func,
     function<void(size_t, stacktrace_entry&&)> __assign_func,
     size_t __skip,
-    size_t __max_depth) _LIBCPP_NOINLINE {
+    size_t __max_depth) {
   ++__skip; // increment once more, to omit this `__current_entries` frame
   auto current_proc = std::__stacktrace_support::process::current_process();
   if (!__max_depth) {

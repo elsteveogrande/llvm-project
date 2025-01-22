@@ -6,11 +6,16 @@
 //
 //===----------------------------------------------------------------------===//
 
+#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_MODULE
+#define _LIBCPP_EXPERIMENTAL_STACKTRACE_MODULE
+
 #include <__config>
 
 namespace std::__stacktrace_support {
 struct binary;
 struct process;
-struct trace;
+struct tracer;
 
-} // namespace std::__stacktrace_support
+}  // namespace std::__stacktrace_support
+
+#endif

@@ -6,4 +6,4 @@
 //
 //===----------------------------------------------------------------------===//
 
-namespace __stacktrace_support {}
+namespace std::__stacktrace_support {}

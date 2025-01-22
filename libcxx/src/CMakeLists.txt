@@ -313,7 +313,7 @@ set(LIBCXX_EXPERIMENTAL_SOURCES
   experimental/stacktrace/binary.cpp
   experimental/stacktrace/module.cpp
   experimental/stacktrace/process.cpp
-  experimental/stacktrace/trace.cpp
+  experimental/stacktrace/tracer.cpp
   )
 
 if (LIBCXX_PSTL_BACKEND STREQUAL "libdispatch")

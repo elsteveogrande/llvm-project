@@ -6,10 +6,8 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_PROCESS
-#define _LIBCPP_EXPERIMENTAL_STACKTRACE_PROCESS
-
-#include "tracer.h"
+#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_TRACER
+#define _LIBCPP_EXPERIMENTAL_STACKTRACE_TRACER
 
 #include <__config>
 #include <cstddef>
@@ -17,22 +15,21 @@
 #include <memory>
 
 namespace std::__stacktrace_support {
-
 struct binary;
 struct module;
+struct process;
 
-struct process {
-    std::shared_ptr<tracer> tracer_;
+struct tracer {
+    virtual ~tracer();
+    static std::shared_ptr<tracer> get_tracer();
 
-    process() : tracer_(tracer::get_tracer()) {}
-    process(process const&) = delete;
+    // Some environment-dependent tracer implementation should support these:
 
-    static std::shared_ptr<process> current_process();
+    virtual size_t call_stack_height(size_t skip) const = 0;
 
-    size_t call_stack_height(size_t skip) const;
-
-    void call_stack_addrs(
-            std::function<void(uintptr_t)> callback, size_t skip, size_t max_depth) const;
+    virtual void
+    call_stack_addrs(std::function<void(uintptr_t)> callback, size_t skip, size_t max_depth)
+            const = 0;
 };
 
 }  // namespace std::__stacktrace_support
