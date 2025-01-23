@@ -6,16 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_BINARY
-#define _LIBCPP_EXPERIMENTAL_STACKTRACE_BINARY
+#include "collector.h"
 
-#include <__config>
-
+#ifdef _LIBCXX_STACKTRACE_USING_LIBUNWIND
 namespace std::__stacktrace_support {
-struct module;
-struct process;
-struct tracer;
+
+collector::collector() {}
+
+collector::~collector() {}
 
 }  // namespace std::__stacktrace_support
-
 #endif

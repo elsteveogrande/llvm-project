@@ -6,14 +6,14 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "process.h"
+#include "collector.h"
 
+#ifdef _LIBCXX_STACKTRACE_USING_DBGHELP
 namespace std::__stacktrace_support {
 
-process::process() : tracer_(tracer::get_tracer()) {}
+collector::collector() {}
 
-std::shared_ptr<process> process::current_process() {
-    return std::make_shared<process>();
-}
+collector::~collector() {}
 
 }  // namespace std::__stacktrace_support
+#endif
