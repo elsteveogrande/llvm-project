@@ -313,6 +313,8 @@ set(LIBCXX_EXPERIMENTAL_SOURCES
   experimental/stacktrace/binary.cpp
   experimental/stacktrace/module.cpp
   experimental/stacktrace/process.cpp
+  experimental/stacktrace/resolver.cpp
+  experimental/stacktrace/sourceline.cpp
   experimental/stacktrace/tracer.cpp
   )
 

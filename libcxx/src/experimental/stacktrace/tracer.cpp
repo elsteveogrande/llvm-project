@@ -16,13 +16,13 @@
 #include <unwind.h>
 #define _LIBCXX_STACKTRACE_TRACE_USING_UNWIND
 
-#elif __has_include(<libunwind.h>)
-#include <libunwind.h>
-#define _LIBCXX_STACKTRACE_TRACE_USING_LIBUNWIND
+// #elif __has_include(<libunwind.h>)
+// #include <libunwind.h>
+// #define _LIBCXX_STACKTRACE_TRACE_USING_LIBUNWIND
 
-#elif __has_include(<execinfo.h>)
-#include <execinfo.h>
-#define _LIBCXX_STACKTRACE_TRACE_USING_EXECINFO
+// #elif __has_include(<execinfo.h>)
+// #include <execinfo.h>
+// #define _LIBCXX_STACKTRACE_TRACE_USING_EXECINFO
 #endif
 
 #include "tracer.h"
@@ -80,23 +80,19 @@ struct unwind_tracer final : tracer {
 };
 #endif
 
-#if defined(_LIBCXX_STACKTRACE_TRACE_USING_LIBUNWIND)
-struct libunwind_tracer : tracer {};
-#endif
+// #if defined(_LIBCXX_STACKTRACE_TRACE_USING_LIBUNWIND)
+// struct libunwind_tracer : tracer {};
+// #endif
 
-#if defined(_LIBCXX_STACKTRACE_TRACE_USING_EXECINFO)
-struct execinfo_tracer : tracer {};
-#endif
+// #if defined(_LIBCXX_STACKTRACE_TRACE_USING_EXECINFO)
+// struct execinfo_tracer : tracer {};
+// #endif
 
 std::shared_ptr<tracer> tracer::get_tracer() {
 #if defined(_LIBCXX_STACKTRACE_TRACE_USING_DBGHELP)
     return std::make_shared<dbghelp_tracer>();
 #elif defined(_LIBCXX_STACKTRACE_TRACE_USING_UNWIND)
     return std::make_shared<unwind_tracer>();
-#elif defined(_LIBCXX_STACKTRACE_TRACE_USING_LIBUNWIND)
-    return std::make_shared<libunwind_tracer>();
-#elif defined(_LIBCXX_STACKTRACE_TRACE_USING_EXECINFO)
-    return std::make_shared<execinfo_tracer>();
 #else
     return {nullptr};
 #endif

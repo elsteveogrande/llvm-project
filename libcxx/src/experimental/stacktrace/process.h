@@ -9,11 +9,11 @@
 #ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_PROCESS
 #define _LIBCPP_EXPERIMENTAL_STACKTRACE_PROCESS
 
+#include "resolver.h"
 #include "tracer.h"
 
 #include <__config>
 #include <cstddef>
-#include <functional>
 #include <memory>
 
 namespace std::__stacktrace_support {
@@ -23,16 +23,11 @@ struct module;
 
 struct process {
     std::shared_ptr<tracer> tracer_;
+    std::shared_ptr<resolver> resolver_;
 
-    process() : tracer_(tracer::get_tracer()) {}
-    process(process const&) = delete;
+    process();
 
     static std::shared_ptr<process> current_process();
-
-    size_t call_stack_height(size_t skip) const;
-
-    void call_stack_addrs(
-            std::function<void(uintptr_t)> callback, size_t skip, size_t max_depth) const;
 };
 
 }  // namespace std::__stacktrace_support

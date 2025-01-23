@@ -6,14 +6,18 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "process.h"
+#include "resolver.h"
 
-namespace std::__stacktrace_support {
+#if __has_include(<windows.h>) && __has_include(<dbghelp.h>)
+#include <windows.h>
+// windows.h has to go first
+#include <dbghelp.h>
+#define _LIBCXX_STACKTRACE_RESOLVE_USING_DBGHELP
+#endif
 
-process::process() : tracer_(tracer::get_tracer()) {}
+#if __has_include(<dlfcn.h>)
+#include <dlfcn.h>
+#define _LIBCXX_STACKTRACE_RESOLVE_USING_DLFCN
+#endif
 
-std::shared_ptr<process> process::current_process() {
-    return std::make_shared<process>();
-}
-
-}  // namespace std::__stacktrace_support
+namespace std::__stacktrace_support {}

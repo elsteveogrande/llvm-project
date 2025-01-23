@@ -6,14 +6,16 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "process.h"
+#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_SOURCELINE
+#define _LIBCPP_EXPERIMENTAL_STACKTRACE_SOURCELINE
+
+#include <__config>
 
 namespace std::__stacktrace_support {
-
-process::process() : tracer_(tracer::get_tracer()) {}
-
-std::shared_ptr<process> process::current_process() {
-    return std::make_shared<process>();
-}
+struct module;
+struct process;
+struct tracer;
 
 }  // namespace std::__stacktrace_support
+
+#endif

@@ -9,6 +9,7 @@
 #include <__config>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 
 #include <experimental/__stacktrace/entry.h>
 #include <experimental/stacktrace>
@@ -20,6 +21,11 @@
 
 _LIBCPP_BEGIN_NAMESPACE_STD
 
+size_t warn_once_no_trace_available() {
+  std::cerr << "warning: cannot produce stacktrace" << std::endl;
+  return 1;
+}
+
 stacktrace_entry::~stacktrace_entry() noexcept = default;
 
 _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void stacktrace_entry::__current_entries(
@@ -27,10 +33,17 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void stacktrace_entry::__current_entries(
     function<void(size_t, stacktrace_entry&&)> __assign_func,
     size_t __skip,
     size_t __max_depth) {
-  ++__skip; // increment once more, to omit this `__current_entries` frame
   auto current_proc = std::__stacktrace_support::process::current_process();
+  auto tracer       = current_proc->tracer;
+  if (!tracer_) {
+    static size_t fail = warn_once_no_trace_available();
+    return;
+  }
+
+  ++__skip; // increment once more, to omit this `__current_entries` frame
+
   if (!__max_depth) {
-    __max_depth = current_proc->call_stack_height(__skip);
+    __max_depth = tracer->call_stack_height(__skip);
   }
   __resize_func(__max_depth);
 
@@ -39,7 +52,7 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void stacktrace_entry::__current_entries(
     std::stacktrace_entry entry{insn_addr, {}};
     __assign_func(index++, std::move(entry));
   };
-  current_proc->call_stack_addrs(callback, __skip, __max_depth);
+  tracer->call_stack_addrs(callback, __skip, __max_depth);
   __resize_func(index);
 }
 
