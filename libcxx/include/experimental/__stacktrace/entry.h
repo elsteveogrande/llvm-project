@@ -181,11 +181,8 @@ namespace std {
 #include <__utility/move.h>
 #include <__vector/swap.h>
 #include <__vector/vector.h>
-#include <any>
 #include <c++/v1/__config>
 #include <cstdint>
-#include <exception>
-#include <source_location>
 #include <string>
 #include <version>
 
@@ -214,9 +211,9 @@ public:
   [[nodiscard]] constexpr explicit operator bool() const noexcept { return __addr_ != 0; }
 
   // (19.6.3.4) [stacktrace.entry.query], query
-  [[nodiscard]] string description() const { return __loc_.function_name(); }
-  [[nodiscard]] string source_file() const { return __loc_.file_name(); }
-  [[nodiscard]] uint_least32_t source_line() const { return __loc_.line(); }
+  [[nodiscard]] string description() const { return __symbol_; }
+  [[nodiscard]] string source_file() const { return __file_; }
+  [[nodiscard]] uint_least32_t source_line() const { return __line_; }
 
   // (19.6.3.5) [stacktrace.entry.cmp], comparison
   [[nodiscard]] friend constexpr bool operator==(const stacktrace_entry& x, const stacktrace_entry& y) noexcept {
@@ -234,21 +231,15 @@ public:
       size_t __max_depth);
 
   _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE static void
-  __populate_symbols(std::vector<stacktrace_entry>& __entries, bool demangle);
+  __populate_symbols(stacktrace_entry* __entries, size_t __size, bool __demangle);
 
-  _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE static void __populate_source_locs(std::vector<stacktrace_entry>& __entries);
-
-private:
-  friend struct _LIBCPP_HIDE_FROM_ABI __stacktrace_test_helper;
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE static void __populate_source_locs(stacktrace_entry* __entries, size_t __size);
 
   native_handle_type __addr_{0};
-  source_location __loc_{};
-
-  stacktrace_entry(native_handle_type __addr, source_location __loc) : __addr_(__addr), __loc_(__loc) {}
-};
-
-struct _LIBCPP_HIDE_FROM_ABI __stacktrace_test_helper {
-  static void __set_addr(stacktrace_entry& __entry, uintptr_t __addr) { __entry.__addr_ = __addr; }
+  string __symbol_;
+  string __file_;
+  uint32_t __line_{0};
+  uint32_t __col_{0};
 };
 
 _LIBCPP_END_NAMESPACE_STD

@@ -220,15 +220,20 @@ class _LIBCPP_EXPORTED_FROM_ABI basic_stacktrace {
   constexpr static bool __kNoThrowAlloc =
       noexcept(noexcept(_Allocator().allocate(1)) && noexcept(_Allocator().allocate_at_least(1)));
 
-  [[no_unique_address]] _Allocator __alloc_;
-  vector<stacktrace_entry, _Allocator> __entries_;
+  using __entry_vec = vector<stacktrace_entry, _Allocator>;
 
-  _LIBCPP_HIDE_FROM_ABI static void __populate(auto& __entry_vec, size_t __skip, size_t __max_depth) _LIBCPP_NOINLINE {
+  [[no_unique_address]] _Allocator __alloc_;
+  __entry_vec __entries_;
+
+  _LIBCPP_HIDE_FROM_ABI static void
+  __populate(__entry_vec& __entry_vec, size_t __skip, size_t __max_depth) _LIBCPP_NOINLINE {
     stacktrace_entry::__current_entries(
         [&__entry_vec](size_t __size) { __entry_vec.resize(__size); },
         [&__entry_vec](size_t __index, stacktrace_entry&& __entry) { __entry_vec[__index] = std::move(__entry); },
         __skip + 1, // skip this `__populate` call, plus caller's requested skip count
         __max_depth);
+    stacktrace_entry::__populate_symbols(__entry_vec.data(), __entry_vec.size(), true);
+    // stacktrace_entry::__populate_source_locs(__entry_vec.data(), __entry_vec.size());
   }
 
 public:

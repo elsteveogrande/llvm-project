@@ -11,10 +11,18 @@
 
 #include <__config>
 #include <cstddef>
+#include <cstdint>
+#include <string>
 
 namespace std::__stacktrace_support {
 
-struct procmap {};
+struct procmap {
+    ~procmap();
+    procmap();
+    procmap(procmap const&) = delete;
+
+    std::string resolve_symbol(uintptr_t addr, bool demangle);
+};
 
 }  // namespace std::__stacktrace_support
 

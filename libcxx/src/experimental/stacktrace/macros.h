@@ -42,12 +42,16 @@
 #define _LIBCXX_STACKTRACE_USE_COLLECTOR_UNWIND
 #elif defined(_LIBCXX_STACKTRACE_HAS_LIBUNWIND_H)
 #define _LIBCXX_STACKTRACE_USE_COLLECTOR_LINUNWIND
+#else
+#error no way to get stacktraces
 #endif
 
 #if defined(_LIBCXX_STACKTRACE_HAS_WINDOWS_H) && defined(_LIBCXX_STACKTRACE_HAS_DBGHELP_H)
 #define _LIBCXX_STACKTRACE_USE_PROCMAP_WIN
 #elif defined(_LIBCXX_STACKTRACE_HAS_DLFCN_H)
 #define _LIBCXX_STACKTRACE_USE_PROCMAP_DLFCN
+#else
+#error no way to resolve symbols
 #endif
 
 #endif

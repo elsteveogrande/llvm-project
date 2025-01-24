@@ -48,7 +48,6 @@ void collector::collect(addr_callback callback, size_t skip, size_t max_depth) {
         auto addr = (uintptr_t) _Unwind_GetIPInfo(cx, &ip_before);
         if (!addr) { return _URC_END_OF_STACK; }
         if (ip_before) { --addr; }
-        printf("@@@ %ld: %lx\n", index, addr);
         callback(addr);
         ++index;
         return _URC_NO_REASON;

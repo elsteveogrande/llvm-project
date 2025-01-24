@@ -141,7 +141,6 @@ void test_current_with_alloc() {
     // assert(st[2].source_line == main_line);
 
     // Verify it used the allocator we provided
-    printf("@@@ + %lu, - %lu\n", allocs, deallocs);
     assert(allocs);
     assert(!deallocs);
 
