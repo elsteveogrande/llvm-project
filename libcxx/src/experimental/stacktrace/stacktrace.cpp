@@ -39,6 +39,11 @@ _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void stacktrace_entry::__current_entries(
     __resize_func(index);
 }
 
-namespace {}
+_LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void stacktrace_entry::__populate_symbols(
+        std::vector<stacktrace_entry>& __entries, bool demangle) {}
+
+_LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE void
+stacktrace_entry::__populate_source_locs(std::vector<stacktrace_entry>& __entries) {
+}
 
 _LIBCPP_END_NAMESPACE_STD

@@ -9,7 +9,7 @@
 #include "../macros.h"
 #include "collector.h"
 
-#ifdef _LIBCXX_STACKTRACE_USE_COLLECTOR_LIBUNWIND
+#ifdef _LIBCXX_STACKTRACE_USE_COLLECTOR_WIN
 
 namespace std::__stacktrace_support {
 

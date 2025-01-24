@@ -6,14 +6,13 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "collector.h"
+#include "../macros.h"
 
-#ifdef _LIBCXX_STACKTRACE_USING_DBGHELP
-namespace std::__stacktrace_support {
+#ifdef _LIBCXX_STACKTRACE_USE_PROCMAP_DLFCN
 
-collector::collector() {}
+#include <__config>
+#include <cstddef>
 
-collector::~collector() {}
+namespace std::__stacktrace_support {}
 
-}  // namespace std::__stacktrace_support
 #endif

@@ -6,16 +6,15 @@
 //
 //===----------------------------------------------------------------------===//
 
-#include "../macros.h"
-#include "collector.h"
+#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_PROCMAP
+#define _LIBCPP_EXPERIMENTAL_STACKTRACE_PROCMAP
 
-#ifdef _LIBCXX_STACKTRACE_USE_COLLECTOR_LIBUNWIND
+#include <__config>
+#include <cstddef>
 
 namespace std::__stacktrace_support {
 
-collector::collector() {}
-
-collector::~collector() {}
+struct procmap {};
 
 }  // namespace std::__stacktrace_support
 

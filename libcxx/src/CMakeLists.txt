@@ -310,9 +310,11 @@ add_custom_target(cxx DEPENDS ${LIBCXX_BUILD_TARGETS})
 set(LIBCXX_EXPERIMENTAL_SOURCES
   experimental/keep.cpp
   experimental/stacktrace/stacktrace.cpp
-  experimental/stacktrace/collector/collector-dbghelp.cpp
   experimental/stacktrace/collector/collector-libunwind.cpp
   experimental/stacktrace/collector/collector-unwind.cpp
+  experimental/stacktrace/collector/collector-win.cpp
+  experimental/stacktrace/procmap/procmap-dlfcn.cpp
+  experimental/stacktrace/procmap/procmap-win.cpp
   )
 
 if (LIBCXX_PSTL_BACKEND STREQUAL "libdispatch")

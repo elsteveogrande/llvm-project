@@ -6,30 +6,12 @@
 //
 //===----------------------------------------------------------------------===//
 
-#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_TRACE
-#define _LIBCPP_EXPERIMENTAL_STACKTRACE_TRACE
+#ifndef _LIBCPP_EXPERIMENTAL_STACKTRACE_COLLECTOR
+#define _LIBCPP_EXPERIMENTAL_STACKTRACE_COLLECTOR
 
 #include <__config>
 #include <cstddef>
 #include <functional>
-
-#if __has_include(<windows.h>) && __has_include(<dbghelp.h>)
-#include <windows.h>
-// windows.h has to go first
-#include <dbghelp.h>
-#define _LIBCXX_STACKTRACE_USING_DBGHELP
-
-#elif __has_include(<unwind.h>)
-#include <unwind.h>
-#define _LIBCXX_STACKTRACE_USING_UNWIND
-
-#elif __has_include(<libunwind.h>)
-#include <libunwind.h>
-#define _LIBCXX_STACKTRACE_USING_LIBUNWIND
-
-#else
-#error Cannot support stacktrace, need one of: unwind, libunwind, dbghelp
-#endif
 
 namespace std::__stacktrace_support {
 
@@ -46,4 +28,4 @@ struct collector final {
 
 }  // namespace std::__stacktrace_support
 
-#endif  // _LIBCPP_EXPERIMENTAL_STACKTRACE_TRACE
+#endif  // _LIBCPP_EXPERIMENTAL_STACKTRACE_COLLECTOR

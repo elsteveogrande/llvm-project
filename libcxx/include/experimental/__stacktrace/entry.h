@@ -233,6 +233,11 @@ public:
       size_t __skip,
       size_t __max_depth);
 
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE static void
+  __populate_symbols(std::vector<stacktrace_entry>& __entries, bool demangle);
+
+  _LIBCPP_HIDE_FROM_ABI _LIBCPP_NOINLINE static void __populate_source_locs(std::vector<stacktrace_entry>& __entries);
+
 private:
   friend struct _LIBCPP_HIDE_FROM_ABI __stacktrace_test_helper;
 

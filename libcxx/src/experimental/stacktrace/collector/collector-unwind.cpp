@@ -6,9 +6,10 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "../macros.h"
 #include "collector.h"
 
-#ifdef _LIBCXX_STACKTRACE_USING_UNWIND
+#ifdef _LIBCXX_STACKTRACE_USE_COLLECTOR_UNWIND
 
 #include <__config>
 #include <cstddef>

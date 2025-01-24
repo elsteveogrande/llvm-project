@@ -188,7 +188,6 @@ namespace std {
 #    include <__utility/move.h>
 #    include <__vector/swap.h>
 #    include <__vector/vector.h>
-#    include <cstdint>
 #    include <string>
 #    include <version>
 
