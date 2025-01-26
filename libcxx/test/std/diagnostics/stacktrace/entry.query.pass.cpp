@@ -56,13 +56,17 @@ int main(int, char**) {
   // First entry of this should be `main`.
   e = trace[0];
   assert(e);
+
+  std::cout << "e.native_handle: " << (void*)e.native_handle() << std::endl;
+  std::cout << "e.description:   " << e.description() << std::endl;
+  std::cout << "e.source_file:   " << e.source_file() << std::endl;
+  std::cout << "e.source_line:   " << e.source_line() << std::endl;
+
   assert(e.native_handle());
   assert(e.native_handle() >= (uintptr_t)&main);
   assert(e.description() == "main");
-
-  std::cout << "e.description: " << e.description() << '\n';
-  std::cout << "e.source_file: " << e.source_file() << '\n';
-  std::cout << "e.source_line: " << e.source_line() << '\n';
+  assert(e.source_file().ends_with("entry.query.pass.cpp"));
+  assert(e.source_line() == line_number);
 
   return 0;
 }

@@ -14,6 +14,19 @@
 #include <experimental/__stacktrace/entry.h>
 #include <experimental/stacktrace>
 
+/*
+ * TODO's for <stacktrace> implementation overall
+ * (not just this file but other related sources and tests)
+ *
+ * - test `stacktrace::pmr`
+ * - windows impl (!)
+ * - `libunwind` collector
+ * - make stackentry's members private + add ways to modify for testing
+ * - reduce allocations if at all possible
+ * - what should the format look like
+ * - the standards doc doesn't include column numbers?
+ */
+
 _LIBCPP_BEGIN_NAMESPACE_STD
 
 stacktrace_entry::~stacktrace_entry() noexcept = default;

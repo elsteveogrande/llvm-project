@@ -34,17 +34,14 @@ std::string procmap::resolve_symbol(uintptr_t addr, bool demangle) {
     char const* symbol = info.dli_sname;
     if (!symbol) { return ""; }
 
-    if (demangle) {
-        int st = 0;
-        auto* demangled = abi::__cxa_demangle(symbol, nullptr, nullptr, &st);
-        if (demangled) {
-            std::string ret(demangled);
-            free(demangled);
-            return ret;
-        }
-    }
+    if (!demangle) { return symbol; }
 
-    return symbol;
+    int status = 0;
+    auto* demangled = abi::__cxa_demangle(symbol, nullptr, nullptr, &status);
+    if (!demangled) { return symbol; }
+    std::string ret(demangled);
+    free(demangled);
+    return ret;
 }
 
 }  // namespace std::__stacktrace_support
